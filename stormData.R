@@ -40,11 +40,12 @@ download.file(url , paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = ''
 bunzip2(paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ) , overwrite = TRUE)
 
 # preprocess data
-data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' ) , stringsAsFactors=FALSE ))
+#data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' ) , stringsAsFactors=FALSE ))
+data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
 colnames(data) <- make.names(colnames(data) , allow_ = FALSE)
 
 # remove columns not in initial investigation
-drop.columns <- c( 'STATE..' , 'COUNTY' , 'TIME.ZONE' , 'REFNUM' , 'REMARKS' , 'BGN.AZI' )
+drop.columns <- c( 'STATE..' , 'COUNTY' , 'TIME.ZONE' , 'REFNUM' , 'REMARKS' , 'BGN.AZI' , 'COUNTYENDN' , 'BGN.RANGE' , 'COUNTY.END' , 'END.RANGE' , 'END.AZI' , 'WFO' , 'STATEOFFIC')
 
 data <- data[,!(names(data) %in% drop.columns)]
 
