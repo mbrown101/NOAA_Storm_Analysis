@@ -93,7 +93,10 @@ print(health.plot)
 econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
 econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum)  
 econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
-econ.melt <- melt(econ , id = c('EVTYPE'))
+econ$total <- econ$CROPDMG + econ$PROPDMG
+econ.subset <- subset(econ , econ$total > mean(econ$total))
+
+econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
 econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
                     geom_bar(stat = 'identity' ,  color = 'black') +  
                     ggtitle("Weather Impact to Economy") + 
