@@ -15,7 +15,7 @@ Data describing various characteristics of storm data was obtained from NOAA for
 #### Reading in the raw data
 Data was read from a raw zipped .csv file provided by NOAA.  The data was in delimited format.  Content was allowed to be read in as a factor as the default case.  
 
-```{r, echo = FALSE , hide = TRUE}
+```{r echo=FALSE, results='hide', message=FALSE}
 
 # define working directory, create if it does not exist and set working directory
 workingDir <- "C:/Users/Mike/Documents/R/NOAA_Storm_Data"
@@ -92,7 +92,7 @@ econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
 ```
 
 ##  Results
-## Investigations:
+
 Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 
 ```{r}
