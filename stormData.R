@@ -68,26 +68,43 @@ human.injury <- aggregate(INJURIES ~ EVTYPE , data = data , FUN = sum)
 # merge data sets
 human.health <- merge(human.life , human.injury , by = 'EVTYPE')           
 
-# order by 
+# order by fatality frequency
+human.health.ordered <- human.health[ order(-human.health[,2] , -human.health[ ,3]) , ]
 
 # select only events that represent injuries or fatailities greater than the mean
 human.health.trim <- subset(human.health , FATALITIES > mean(FATALITIES) | INJURIES > mean(INJURIES))  
 
 human.health.melt <- melt(human.health.trim , id = c('EVTYPE'))
 
-health.plot <- ggplot(data = human.health.melt , aes(x = EVTYPE , y = value , fill = variable)) +
-                    geom_bar(stat = 'identity' , position = position_dodge() , color = 'black') +  
-                    ggtitle("Storm Impact to Human Health") + 
+health.plot <- ggplot(data = human.health.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
+                    geom_bar(stat = 'identity' ,  color = 'black') +  
+                    ggtitle("Weather Impact to Human Health") + 
                     theme(plot.title = element_text(lineheight=.8, face="bold")) + 
                     theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) + 
-                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - NOV 2011')
+                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - 2011 [log]')
 
 print(health.plot)
 
 ```
 
 - Across the United States, which types of events have the greatest economic consequences?
+```{r}
+# aggregate crop damage by event type
+econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
+econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum)  
+econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
+econ.melt <- melt(econ , id = c('EVTYPE'))
+econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
+                    geom_bar(stat = 'identity' ,  color = 'black') +  
+                    ggtitle("Weather Impact to Economy") + 
+                    theme(plot.title = element_text(lineheight=.8, face="bold")) + 
+                    theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) + 
+                    labs(x = 'Event Type' , y = 'Total Economic Impact 1950 - 2011')
 
+print(econ.plot)
+
+
+```
 
 ##  Results
 Present results
