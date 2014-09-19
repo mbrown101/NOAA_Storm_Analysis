@@ -1,18 +1,21 @@
 ---
 title: "Analysis of NOAA Storm Data"
-author: "Mike Brown"
-date: "Tuesday, September 16, 2014"
+author: "Michael Brown"
+date: "Friday, September 19, 2014"
 output: html_document
 ---
 
-## Synopsis:  
-NOAA Storm Data was analyized and was found to have ........   
-describes and summarizes your analysis in at most 10 complete sentences.
 
-## Data Processing  
-describes (in words and code) how the data were loaded into R and processed for analysis. In particular, your analysis must start from the raw CSV file containing the data. You cannot do any preprocessing outside the document. If preprocessing is time-consuming you may consider using the cache = TRUE option for certain code chunks.
+### Synopsis:  
+NOAA Storm Data was analyized for the period 1950 to 2011 to determine if there were events that had frequent and disporportionally high effect on human health and the economy of the United States.  As it pertains to human health (measured by both injuries and fatailities), tornado events were found to have the highest impact on human health by an order of magnitude of the next most prevalent weather event, excessice heat.  AS it pertains economic impact, tornados also had the hightest overall impact as measured by qumulative impact on property and crops.  The single highest impact to cropps, however was find to be flooding.  It is noted that the economic impacts of human health outcomes resultign from weather events are not captured and may have a significant effect in some cases.   
 
-```{r, echo=TRUE}
+### Loading and Processing the Raw Data  
+Data describing various characteristics of storm data was obtained from NOAA for years  1950 - 2011. 
+
+#### Reading in the raw data
+Data was read from a raw zipped .csv file provided by NOAA.  The data was in delimited format.  Content was allowed to be read in as a factor as the default case.  
+
+```{r, echo = FALSE , hide = TRUE}
 
 # define working directory, create if it does not exist and set working directory
 workingDir <- "C:/Users/Mike/Documents/R/NOAA_Storm_Data"
@@ -23,40 +26,30 @@ if (!file.exists(workingDir)){
 
 setwd(workingDir)
 
-install.packages("timeDate")
-library(timeDate)
+options(scipen = 100)
 
-install.packages("ggplot2")
 library(ggplot2)
-
-install.packages("R.utils")
 library(R.utils)
-
-install.packages("reshape")
 library(reshape)
-
-### Loading and preprocessing the data ###
-
-# import and unzip data
-url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'
-download.file(url , paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ))
-bunzip2(paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ) , overwrite = TRUE)
-
-# preprocess data
-#data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' ) , stringsAsFactors=FALSE ))
-data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
-colnames(data) <- make.names(colnames(data) , allow_ = FALSE)
-
-# remove selected columns for initial investigation
-#drop.columns <- c( 'STATE..' , 'COUNTY' , 'TIME.ZONE' , 'REFNUM' , 'REMARKS' , 'BGN.AZI' , 'COUNTYENDN' , 'BGN.RANGE' , 'COUNTY.END' , 'END.RANGE' , 'END.AZI' , 'WFO' , 'STATEOFFIC')
-
-#data <- data[,!(names(data) %in% drop.columns)]
-
 
 ```
 
-## Investigations:
-- Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+####Read in NOAA data
+
+We first read in the data to a dataframe.
+
+```{r}
+# preprocess data
+data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
+
+```
+
+After reading in, we check the structure knowing there are 903871 rows including header:
+
+```{r}
+str(data)
+
+```
 
 ```{r}
 # aggregate fatailities by event type
@@ -73,8 +66,27 @@ human.health.ordered <- human.health[ order(-human.health[,2] , -human.health[ ,
 
 # select only events that represent injuries or fatailities greater than the mean
 human.health.trim <- subset(human.health , FATALITIES > mean(FATALITIES) | INJURIES > mean(INJURIES))  
-
 human.health.melt <- melt(human.health.trim , id = c('EVTYPE'))
+
+
+# aggregate crop damage by event type
+econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
+econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum)  
+econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
+econ$total <- econ$CROPDMG + econ$PROPDMG
+econ.subset <- subset(econ , econ$total > mean(econ$total))
+
+econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
+
+
+
+```
+
+##  Results
+## Investigations:
+Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+```{r}
 
 health.plot <- ggplot(data = human.health.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
                     geom_bar(stat = 'identity' ,  color = 'black') +  
@@ -86,17 +98,9 @@ health.plot <- ggplot(data = human.health.melt , aes(x = reorder(EVTYPE , -value
 print(health.plot)
 
 ```
+Across the United States, which types of events have the greatest economic consequences?
 
-- Across the United States, which types of events have the greatest economic consequences?
 ```{r}
-# aggregate crop damage by event type
-econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
-econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum)  
-econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
-econ$total <- econ$CROPDMG + econ$PROPDMG
-econ.subset <- subset(econ , econ$total > mean(econ$total))
-
-econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
 econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
                     geom_bar(stat = 'identity' ,  color = 'black') +  
                     ggtitle("Weather Impact to Economy") + 
@@ -105,14 +109,7 @@ econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = va
                     labs(x = 'Event Type' , y = 'Total Economic Impact 1950 - 2011')
 
 print(econ.plot)
-
-
 ```
-
-##  Results
-Present results
-
-.... no more than 3 figures
 
 ## References
 NOAA description of data: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
