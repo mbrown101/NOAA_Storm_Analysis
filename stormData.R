@@ -44,12 +44,13 @@ data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , s
 
 ```
 
-After reading in, we check the structure knowing there are 903871 rows including header:
+After reading in, we check the structure:
 
 ```{r}
 str(data)
-
 ```
+
+Next, we aggregate injuries and fatalities across all years as a function of weather event.
 
 ```{r}
 # aggregate fatailities by event type
@@ -57,7 +58,11 @@ human.life <- aggregate(FATALITIES ~ EVTYPE , data = data , FUN = sum)
 
 # aggregate injuries by event type
 human.injury <- aggregate(INJURIES ~ EVTYPE , data = data , FUN = sum) 
- 
+```
+
+The two data sets for human health (fataility and injury) first merged then ordered and subsetted for cases where the aggregate injuries or fatailities are greater that the mean. 
+
+```{r}
 # merge data sets
 human.health <- merge(human.life , human.injury , by = 'EVTYPE')           
 
@@ -67,19 +72,23 @@ human.health.ordered <- human.health[ order(-human.health[,2] , -human.health[ ,
 # select only events that represent injuries or fatailities greater than the mean
 human.health.trim <- subset(human.health , FATALITIES > mean(FATALITIES) | INJURIES > mean(INJURIES))  
 human.health.melt <- melt(human.health.trim , id = c('EVTYPE'))
+```
 
+In a fashon similar to the human health analysis, we aggregate crop and property damage over the dtudyt period for each eveny type.
+
+```{r}
 
 # aggregate crop damage by event type
 econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
-econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum)  
+econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum) 
+```
+The two economic impact data sets (property damage and crop damage) are first merged then totaled for each event type (e.g. the sum of crop damage and property damage) for each event. The data are then subsetted for the cases where the total economic damage isi greater than the mean. The resulting subset is then melted to accomodate plotting.
+
+```{r}
 econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
 econ$total <- econ$CROPDMG + econ$PROPDMG
 econ.subset <- subset(econ , econ$total > mean(econ$total))
-
 econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
-
-
-
 ```
 
 ##  Results
