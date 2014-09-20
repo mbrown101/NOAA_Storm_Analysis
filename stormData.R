@@ -1,21 +1,17 @@
----
-title: "Analysis of NOAA Storm Data"
-author: "Michael Brown"
-date: "Friday, September 19, 2014"
-output: html_document
----
+##Analyis of NOAA Weather Data
+Author: Michael Brown
+Date: 20 September, 2014
 
-
-### Synopsis:  
+###Synopsis:  
 NOAA Storm Data was analyized for the period 1950 to 2011 to determine if there were events that had frequent and disporportionally high effect on human health and the economy of the United States.  As it pertains to human health (measured by both injuries and fatailities), tornado events were found to have the highest impact on human health by an order of magnitude of the next most prevalent weather event, excessice heat.  AS it pertains economic impact, tornados also had the hightest overall impact as measured by qumulative impact on property and crops.  The single highest impact to cropps, however was find to be flooding.  It is noted that the economic impacts of human health outcomes resultign from weather events are not captured and may have a significant effect in some cases.   
 
-### Loading and Processing the Raw Data  
+###Loading and Processing the Raw Data  
 Data describing various characteristics of storm data was obtained from NOAA for years  1950 - 2011. 
 
-#### Reading in the raw data
+####Reading in the raw data
 Data was read from a raw zipped .csv file provided by NOAA.  The data was in delimited format.  Content was allowed to be read in as a factor as the default case.  
 
-```{r echo=FALSE, results='hide', message=FALSE}
+```{r echo=FALSE, results='hide', message=FALSE }
 
 # define working directory, create if it does not exist and set working directory
 workingDir <- "C:/Users/Mike/Documents/R/NOAA_Storm_Data"
@@ -27,42 +23,93 @@ if (!file.exists(workingDir)){
 setwd(workingDir)
 
 #install.packages("timeDate")
-library(timeDate)
+library('timeDate')
 
 #install.packages("ggplot2")
-library(ggplot2)
+library('ggplot2')
 
 #install.packages("R.utils")
-library(R.utils)
+library('R.utils')
 
 #install.packages("reshape")
-library(reshape)
+library('reshape')
 
 ### Loading and preprocessing the data ###
 
 # import and unzip data
-url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'
-download.file(url , paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ))
-bunzip2(paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ) , overwrite = TRUE)
+#url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'
+#download.file(url , paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ))
+#bunzip2(paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ) , overwrite = TRUE)
 
-# preprocess data
-data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
 ```
+
 
 ####Read in NOAA data
 
-We first read in the data to a dataframe.
+We first read in the data to a dataframe, then ensure valid column names.
 
 ```{r}
 # preprocess data
-data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
+raw.data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
+colnames(raw.data) <- make.names(colnames(raw.data) , allow_ = FALSE)
 
 ```
 
-After reading in, we check the structure:
+After reading in, we examine top few records to check for consistency.
 
 ```{r}
-str(data)
+head(raw.data)
+```
+
+Since the damage figures {PROPDMG and CROPDMG} must be modified by an exponential factor {PROPDMGEXP and CROPDMGEXP}, we check the continuity of each which should be {K , M , B}:  
+
+Property Damage Levels:
+
+```{r}
+
+levels(raw.data[,'PROPDMGEXP'])
+
+
+```
+
+Crop Damage Levels:
+
+```{r}
+
+levels(raw.data[,'CROPDMGEXP'])
+
+```
+
+
+In order to resolve the scaling inconsistencies and to accomodate ease of scaling, we will create a new dataframe ' data' and add a new column 'damage.scale.crop' and 'damage.scale.prop' which contains a numeric scaling factor:
+
+ { k , K } = 1000
+ { m , M } = 1000000
+ { b , B } = 1000000000
+
+
+```{r}
+
+data <- raw.data
+data$damage.scale.crop <- 0      # create initial damage.scale.crop column
+data$damage.scale.prop <- 0      # create initial damage.scale.prop column
+
+data$damage.scale.crop[data$CROPDMGEXP %in% c('k' , 'K')] <- 1000
+data$damage.scale.crop[data$CROPDMGEXP %in% c('m' , 'M')] <- 1000000
+data$damage.scale.crop[data$CROPDMGEXP %in% c('b' , 'B')] <- 1000000000
+
+data$damage.scale.prop[data$PROPDMGEXP %in% c('k' , 'K')] <- 1000
+data$damage.scale.prop[data$PROPDMGEXP %in% c('m' , 'M')] <- 1000000
+data$damage.scale.prop[data$PROPDMGEXP %in% c('b' , 'B')] <- 1000000000
+
+```
+
+Now create columns prop.dam and crop.dam to reflect teh scaled damage (e.g. damage.scale.prop * PROPDMG) 
+
+```{r}
+data$prop.dam <- data$damage.scale.prop * data$PROPDMG
+data$crop.dam <- data$damage.scale.crop * data$CROPDMG
+
 ```
 
 Next, we aggregate injuries and fatalities across all years as a function of weather event.
@@ -89,19 +136,27 @@ human.health.trim <- subset(human.health , FATALITIES > mean(FATALITIES) | INJUR
 human.health.melt <- melt(human.health.trim , id = c('EVTYPE'))
 ```
 
-In a fashon similar to the human health analysis, we aggregate crop and property damage over the dtudyt period for each eveny type.
+Damage to crops and property is developed in a fashon similar to the human health analysis, however, we must first modify damage figures for exponential factor in PROPDMGEXP and CROPDMGEXP respectively. In order to improve processing efficiency, we subset for records with crop or property damage greater than zero
+
+```{r}
+
+
+
+```
+
+With damage figures now properly scaled, we now aggregate crop and property damage over the study period for each event type.
 
 ```{r}
 
 # aggregate crop damage by event type
-econ.crop <- aggregate(CROPDMG ~ EVTYPE , data = data , FUN = sum)      
-econ.prop <- aggregate(PROPDMG ~ EVTYPE , data = data , FUN = sum) 
+econ.crop <- aggregate(crop.dam ~ EVTYPE , data = data , FUN = sum)      
+econ.prop <- aggregate(prop.dam ~ EVTYPE , data = data , FUN = sum) 
 ```
 The two economic impact data sets (property damage and crop damage) are first merged then totaled for each event type (e.g. the sum of crop damage and property damage) for each event. The data are then subsetted for the cases where the total economic damage isi greater than the mean. The resulting subset is then melted to accomodate plotting.
 
 ```{r}
 econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
-econ$total <- econ$CROPDMG + econ$PROPDMG
+econ$total <- econ$crop.dam + econ$prop.dam
 econ.subset <- subset(econ , econ$total > mean(econ$total))
 econ.melt <- melt(econ.subset[,1:3] , id = c('EVTYPE'))
 ```
@@ -117,7 +172,7 @@ health.plot <- ggplot(data = human.health.melt , aes(x = reorder(EVTYPE , -value
                     ggtitle("Weather Impact to Human Health") + 
                     theme(plot.title = element_text(lineheight=.8, face="bold")) + 
                     theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) + 
-                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - 2011 [log]')
+                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - 2011')
 
 print(health.plot)
 
