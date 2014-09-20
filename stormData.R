@@ -26,12 +26,27 @@ if (!file.exists(workingDir)){
 
 setwd(workingDir)
 
-options(scipen = 100)
+#install.packages("timeDate")
+library(timeDate)
 
+#install.packages("ggplot2")
 library(ggplot2)
+
+#install.packages("R.utils")
 library(R.utils)
+
+#install.packages("reshape")
 library(reshape)
 
+### Loading and preprocessing the data ###
+
+# import and unzip data
+url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2'
+download.file(url , paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ))
+bunzip2(paste(getwd() , "/repdata-data-StormData.csv.bz2" , sep = '' ) , overwrite = TRUE)
+
+# preprocess data
+data <- as.data.frame(read.csv(paste(getwd() , "/repdata-data-StormData.csv" , sep = '' )))
 ```
 
 ####Read in NOAA data
