@@ -177,7 +177,8 @@ health.plot <- ggplot(data = human.health.melt , aes(x = reorder(EVTYPE , -value
                     ggtitle("Weather Impact to Human Health") + 
                     theme(plot.title = element_text(lineheight=.8, face="bold")) + 
                     theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) + 
-                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - 2011')
+                    labs(x = 'Event Type' , y = 'Total Incidents 1950 - 2011') +
+                    theme(legend.position=c(1,1),legend.justification=c(1,1))
 
 print(health.plot)
 
@@ -189,14 +190,17 @@ As shown in the plot below, across the United States, floods present the greates
 
 
 ```{r}
+
 econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = value , fill = variable)) +
                     geom_bar(stat = 'identity' ,  color = 'black') +  
-                    ggtitle("Weather Impact to Economy") + 
+                    ggtitle("Weather Impact to Economy 1950 - 2011") + 
                     theme(plot.title = element_text(lineheight=.8, face="bold")) + 
                     theme(axis.text.x=element_text(angle=60, hjust=1, size = 8)) + 
-                    labs(x = 'Event Type' , y = 'Total Economic Impact 1950 - 2011')
+                    labs(x = 'Event Type' , y = 'Cumulative Economic Impact [$]') +
+                    theme(legend.position=c(1,1),legend.justification=c(1,1))
 
 print(econ.plot)
+
 ```
 
 The top five catastrophes are shown below ordered by total damage
