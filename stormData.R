@@ -5,7 +5,7 @@ Date: 20 September, 2014
 ###Synopsis:  
 NOAA Storm Data was analyzed for the period 1950 to 2011 to determine if there were events that had frequent and disproportionally high effect on human health and the economy of the United States. As it pertains to human health (measured by both injuries and fatalities), tornado events were found to have the highest impact on human health by an order of magnitude of the next most prevalent weather event, excessive heat. As it pertains economic impact, tornados also had the highest overall impact as measured by cumulative impact on property and crops. The single highest impact to crops however was finding to be flooding. It is noted that the economic impacts of human health outcomes resulting from weather events are not captured and may have a significant effect in some cases.
 
-###Loading and Processing the Raw Data  
+###Data Processing  
 Data describing various characteristics of storm data was obtained from NOAA for years  1950 - 2011. 
 
 
