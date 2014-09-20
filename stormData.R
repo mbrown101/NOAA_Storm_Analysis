@@ -1,4 +1,4 @@
-##Analysis of NOAA Weather Data
+##The Impact of Severe Weather on US Economy and Health
 Author: Michael Brown  
 Date: 20 September, 2014
 
