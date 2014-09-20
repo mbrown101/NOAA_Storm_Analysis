@@ -1,9 +1,9 @@
-##Analyis of NOAA Weather Data
+##Analysis of NOAA Weather Data
 Author: Michael Brown  
 Date: 20 September, 2014
 
 ###Synopsis:  
-NOAA Storm Data was analyized for the period 1950 to 2011 to determine if there were events that had frequent and disporportionally high effect on human health and the economy of the United States.  As it pertains to human health (measured by both injuries and fatailities), tornado events were found to have the highest impact on human health by an order of magnitude of the next most prevalent weather event, excessice heat.  As it pertains economic impact, tornados also had the hightest overall impact as measured by qumulative impact on property and crops.  The single highest impact to cropps, however was find to be flooding.  It is noted that the economic impacts of human health outcomes resultign from weather events are not captured and may have a significant effect in some cases.   
+NOAA Storm Data was analyzed for the period 1950 to 2011 to determine if there were events that had frequent and disproportionally high effect on human health and the economy of the United States. As it pertains to human health (measured by both injuries and fatalities), tornado events were found to have the highest impact on human health by an order of magnitude of the next most prevalent weather event, excessive heat. As it pertains economic impact, tornados also had the highest overall impact as measured by cumulative impact on property and crops. The single highest impact to crops however was finding to be flooding. It is noted that the economic impacts of human health outcomes resulting from weather events are not captured and may have a significant effect in some cases.
 
 ###Loading and Processing the Raw Data  
 Data describing various characteristics of storm data was obtained from NOAA for years  1950 - 2011. 
@@ -126,7 +126,7 @@ human.life <- aggregate(FATALITIES ~ EVTYPE , data = data , FUN = sum)
 human.injury <- aggregate(INJURIES ~ EVTYPE , data = data , FUN = sum) 
 ```
 
-The two data sets for human health (fataility and injury) first merged then ordered and subsetted for cases where the aggregate injuries or fatailities are greater that the mean.   
+The two data sets for human health (fatality and injury) first merged then ordered and subsetted for cases where the aggregate injuries or fatalities are greater than the mean. 
 
 ```{r}
 # merge data sets
@@ -140,7 +140,7 @@ human.health.trim <- subset(human.health , FATALITIES > mean(FATALITIES) | INJUR
 human.health.melt <- melt(human.health.trim , id = c('EVTYPE'))
 ```
 
-Damage to crops and property is developed in a fashon similar to the human health analysis, however, we must first modify damage figures for exponential factor in PROPDMGEXP and CROPDMGEXP respectively. In order to improve processing efficiency, we subset for records with crop or property damage greater than zero  
+Damage to crops and property is developed in a fashion similar to the human health analysis, however, we must first modify damage figures for exponential factor in PROPDMGEXP and CROPDMGEXP respectively. In order to improve processing efficiency, we subset for records with crop or property damage greater than zero  
 
 ```{r}
 
@@ -156,7 +156,7 @@ With damage figures now properly scaled, we now aggregate crop and property dama
 econ.crop <- aggregate(crop.dam ~ EVTYPE , data = data , FUN = sum)      
 econ.prop <- aggregate(prop.dam ~ EVTYPE , data = data , FUN = sum) 
 ```
-The two economic impact data sets (property damage and crop damage) are first merged then totaled for each event type (e.g. the sum of crop damage and property damage) for each event. The data are then subsetted for the cases where the total economic damage isi greater than the mean. The resulting subset is then melted to accomodate plotting.
+The two economic impact data sets (property damage and crop damage) are first merged then totaled for each event type (e.g. the sum of crop damage and property damage) for each event. The data are then subsetted for the cases where the total economic damage isi greater than the mean. The resulting subset is then melted to accommodate plotting.
 
 ```{r}
 econ <- merge(econ.crop , econ.prop , by = 'EVTYPE') 
@@ -184,7 +184,7 @@ print(health.plot)
 ```
 
 #### Economic impact:
-As shown in the plot below, across the United States, floods present the greatest economic impact to crops and property and, in fact, represent greter econnmic impact to the second and third catastrophies combined (hurricanes & tornados).
+As shown in the plot below, across the United States, floods present the greatest economic impact to crops and property and, in fact, represent greater economic impact to the second and third catastrophes combined (hurricanes & tornados).
 
 
 
@@ -199,7 +199,7 @@ econ.plot <- ggplot(data = econ.melt , aes(x = reorder(EVTYPE , -value) , y = va
 print(econ.plot)
 ```
 
-The top five catastrophies are shown below ordered by total damage
+The top five catastrophes are shown below ordered by total damage
 
 
 ```{r}
@@ -209,11 +209,11 @@ head(econ.subset[ with(econ.subset, order(-total)), ] , 5)
 
 ```
 
-Ordering by damage to propoerty only, the results are the same as shown below.
+Ordering by damage to property only, the results are the same as shown below.
 
 ```{r}
 
-head(econ.subset[ with(econ.subset, order(-prop.dam)), ] , 10)
+head(econ.subset[ with(econ.subset, order(-prop.dam)), ] , 5)
 
 ```
 
